@@ -8,6 +8,7 @@ package io.debezium.configserver;
 
 import io.debezium.configserver.rest.ConnectorURIs;
 import io.debezium.configserver.util.Infrastructure;
+import io.debezium.configserver.util.MongoDbContainer;
 import io.debezium.configserver.util.MongoDbInfrastructureTestProfile;
 import io.debezium.connector.mongodb.MongoDbConnectorConfig;
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
@@ -29,8 +30,9 @@ public class ValidateMongoDbFiltersIT {
 
     @Test
     public void testEmptyMongoDbFilters() {
+        var container = (MongoDbContainer)Infrastructure.getMongoDbContainer();
         ConnectorConfiguration config = Infrastructure.getMongoDbConnectorConfiguration(1)
-                .with(MongoDbConnectorConfig.HOSTS.name(), "rs0/localhost:" + Infrastructure.getMongoDbContainer().getMappedPort(27017));
+                .with(MongoDbConnectorConfig.HOSTS.name(), "rs0/localhost:" + container.getAddress());
 
         given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toJson())
             .post(ConnectorURIs.API_PREFIX + ConnectorURIs.FILTERS_VALIDATION_ENDPOINT, "mongodb")

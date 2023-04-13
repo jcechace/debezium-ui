@@ -6,6 +6,7 @@
 package io.debezium.configserver.util;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.model.ContainerNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Container;
@@ -19,6 +20,9 @@ import org.testcontainers.utility.MountableFile;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.IntStream.range;
 
 public class MongoDbContainer extends MongoDBContainer {
 
@@ -101,9 +105,26 @@ public class MongoDbContainer extends MongoDBContainer {
         }
     }
 
+    public String getNetworkIp() {
+        var info = getContainerInfo();
+        return info
+                .getNetworkSettings()
+                .getNetworks()
+                .values()
+                .stream()
+                .findFirst() // Only one, and it's the one we set in the constructor
+                .map(ContainerNetwork::getIpAddress)
+                .orElseThrow();
+    }
+
+    public String getAddress() {
+        return getNetworkIp() + ":" + "27017";
+    }
+
     private void initReplicaSet() throws IOException, InterruptedException {
         LOGGER.debug("Initializing a single node replica set...");
-        final ExecResult execResultInitRs = execInContainer(buildMongoEvalCommand("rs.initiate();"));
+        var cmd = "rs.initiate({_id:'rs0', members:[" + getAddress() + "]})";
+        final ExecResult execResultInitRs = execInContainer(buildMongoEvalCommand(cmd));
         LOGGER.debug(execResultInitRs.getStdout());
         checkMongoNodeExitCode(execResultInitRs);
 
