@@ -5,12 +5,12 @@
  */
 package io.debezium.configserver;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.debezium.configserver.rest.ConnectorURIs;
 import io.debezium.configserver.util.Infrastructure;
 import io.debezium.configserver.util.MongoDbInfrastructureTestProfile;
 import io.debezium.connector.mongodb.MongoDbConnectorConfig;
-import io.debezium.testing.testcontainers.ConnectorConfigurationTestingHelper;
+import io.debezium.testing.testcontainers.ConnectorConfiguration;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import io.restassured.http.ContentType;
@@ -29,12 +29,10 @@ public class ValidateMongoDbFiltersIT {
 
     @Test
     public void testEmptyMongoDbFilters() {
-        ObjectNode config = ConnectorConfigurationTestingHelper.getConfig(
-            Infrastructure.getMongoDbConnectorConfiguration(1)
-                .with(MongoDbConnectorConfig.HOSTS.name(), "rs0/localhost:" + Infrastructure.getMongoDbContainer().getMappedPort(27017))
-        );
+        ConnectorConfiguration config = Infrastructure.getMongoDbConnectorConfiguration(1)
+                .with(MongoDbConnectorConfig.HOSTS.name(), "rs0/localhost:" + Infrastructure.getMongoDbContainer().getMappedPort(27017));
 
-        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toString())
+        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toJson())
             .post(ConnectorURIs.API_PREFIX + ConnectorURIs.FILTERS_VALIDATION_ENDPOINT, "mongodb")
             .then().log().all()
             .statusCode(200)
@@ -51,13 +49,11 @@ public class ValidateMongoDbFiltersIT {
 
     @Test
     public void testValidTableIncludeList() {
-        ObjectNode config = ConnectorConfigurationTestingHelper.getConfig(
-                Infrastructure.getMongoDbConnectorConfiguration(1)
+        ConnectorConfiguration config = Infrastructure.getMongoDbConnectorConfiguration(1)
                         .with(MongoDbConnectorConfig.HOSTS.name(), "rs0/localhost:" + Infrastructure.getMongoDbContainer().getMappedPort(27017))
-                        .with(MongoDbConnectorConfig.COLLECTION_INCLUDE_LIST.name(), "inventory\\.product.*")
-        );
+                        .with(MongoDbConnectorConfig.COLLECTION_INCLUDE_LIST.name(), "inventory\\.product.*");
 
-        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toString())
+        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toJson())
             .post(ConnectorURIs.API_PREFIX + ConnectorURIs.FILTERS_VALIDATION_ENDPOINT, "mongodb")
             .then().log().all()
             .statusCode(200)
@@ -72,13 +68,11 @@ public class ValidateMongoDbFiltersIT {
 
     @Test
     public void testValidDatabaseIncludeList() {
-        ObjectNode config = ConnectorConfigurationTestingHelper.getConfig(
-                Infrastructure.getMongoDbConnectorConfiguration(1)
+        ConnectorConfiguration config = Infrastructure.getMongoDbConnectorConfiguration(1)
                         .with(MongoDbConnectorConfig.HOSTS.name(), "rs0/localhost:" + Infrastructure.getMongoDbContainer().getMappedPort(27017))
-                        .with(MongoDbConnectorConfig.DATABASE_INCLUDE_LIST.name(), "inventory")
-        );
+                        .with(MongoDbConnectorConfig.DATABASE_INCLUDE_LIST.name(), "inventory");
 
-        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toString())
+        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toJson())
             .post(ConnectorURIs.API_PREFIX + ConnectorURIs.FILTERS_VALIDATION_ENDPOINT, "mongodb")
             .then().log().all()
             .statusCode(200)
@@ -95,13 +89,11 @@ public class ValidateMongoDbFiltersIT {
 
     @Test
     public void testDatabaseIncludeListPatternInvalid() {
-        ObjectNode config = ConnectorConfigurationTestingHelper.getConfig(
-                Infrastructure.getMongoDbConnectorConfiguration(1)
+        ConnectorConfiguration config = Infrastructure.getMongoDbConnectorConfiguration(1)
                         .with(MongoDbConnectorConfig.HOSTS.name(), "rs0/localhost:" + Infrastructure.getMongoDbContainer().getMappedPort(27017))
-                        .with(MongoDbConnectorConfig.DATABASE_INCLUDE_LIST.name(), "+")
-        );
+                        .with(MongoDbConnectorConfig.DATABASE_INCLUDE_LIST.name(), "+");
 
-        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toString())
+        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toJson())
             .post(ConnectorURIs.API_PREFIX + ConnectorURIs.FILTERS_VALIDATION_ENDPOINT, "mongodb")
             .then().log().all()
             .statusCode(200)
@@ -115,13 +107,11 @@ public class ValidateMongoDbFiltersIT {
 
     @Test
     public void testDatabaseExcludeListPatternInvalid() {
-        ObjectNode config = ConnectorConfigurationTestingHelper.getConfig(
-                Infrastructure.getMongoDbConnectorConfiguration(1)
+        ConnectorConfiguration config = Infrastructure.getMongoDbConnectorConfiguration(1)
                         .with(MongoDbConnectorConfig.HOSTS.name(), "rs0/localhost:" + Infrastructure.getMongoDbContainer().getMappedPort(27017))
-                        .with(MongoDbConnectorConfig.DATABASE_EXCLUDE_LIST.name(), "+")
-        );
+                        .with(MongoDbConnectorConfig.DATABASE_EXCLUDE_LIST.name(), "+");
 
-        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toString())
+        given().when().contentType(ContentType.JSON).accept(ContentType.JSON).body(config.toJson())
             .post(ConnectorURIs.API_PREFIX + ConnectorURIs.FILTERS_VALIDATION_ENDPOINT, "mongodb")
             .then().log().all()
             .statusCode(200)

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
@@ -33,13 +34,13 @@ public class MongoDbContainer extends MongoDBContainer {
     public MongoDbContainer(DockerImageName imageName) {
         super(imageName);
         withExposedPorts(27017)
-            .withCommand("--replSet", "rs0", "--auth")
+            .withCommand("--replSet", "rs0")
             .withEnv("MONGO_INITDB_DATABASE", "admin")
             .withEnv("MONGO_INITDB_ROOT_USERNAME", "admin")
             .withEnv("MONGO_INITDB_ROOT_PASSWORD", "admin")
             .withLogConsumer(new Slf4jLogConsumer(LOGGER))
             .withCopyFileToContainer(MountableFile.forClasspathResource("initialize-mongo-single.js"), "/docker-entrypoint-initdb.d/")
-            .waitingFor(Wait.forLogMessage(".*waiting for connections on port.*", 2));
+            .waitingFor(Wait.forLogMessage("(?i).*waiting for connections.*", 1));
     }
 
     @Override

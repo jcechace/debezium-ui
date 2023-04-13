@@ -26,6 +26,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.startupcheck.MinimumDurationRunningStartupCheckStrategy;
 import org.testcontainers.lifecycle.Startables;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.MountableFile;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -40,8 +41,7 @@ public class Infrastructure {
     public enum DATABASE {
         POSTGRES, MYSQL, SQLSERVER, MONGODB, ORACLE, NONE
     }
-
-    private static final String DEBEZIUM_CONTAINER_VERSION = "2.0";
+    private static final String DEBEZIUM_CONTAINER_VERSION = "2.2";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Infrastructure.class);
 
@@ -66,7 +66,7 @@ public class Infrastructure {
                     .withNetworkAliases("mysql");
 
     private static final MongoDBContainer MONGODB_CONTAINER =
-            new MongoDbContainer(DockerImageName.parse("mongo:3.6"))
+            new MongoDbContainer(DockerImageName.parse("mongo:5.0"))
                     .withNetwork(NETWORK)
                     .withNetworkAliases("mongodb");
 
@@ -138,7 +138,13 @@ public class Infrastructure {
         if ("true".equals(System.getenv("CI"))) {
             containers.get().forEach(container -> container.withStartupTimeout(Duration.ofSeconds(90)));
         }
-        Startables.deepStart(containers.get()).join();
+
+        try {
+            Startables.deepStart(containers.get()).join();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw t;
+        }
     }
 
     public static KafkaContainer getKafkaContainer() {
